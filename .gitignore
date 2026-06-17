@@ -1,0 +1,6 @@
+.env
+uploads/*
+.idea
+logs/*.log
+logs/*.log.*
+

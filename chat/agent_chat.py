@@ -10,6 +10,7 @@ import os
 from logs.logging_server import logger
 # RAG 检索函数（纯向量 / 混合）
 from hybrid_rag import build_to_llm_hybrid_search_str
+from chat.query_rewrite import rewrite_query
 from langchain_openai import ChatOpenAI
 from config import ALI_MODEL_KEY,ALI_MODEL_BASE_URL,ALI_MODEL_NAME
 
@@ -61,7 +62,8 @@ def call_rag(state: AgentState):
     """LangGraph 节点：执行 RAG 检索，获取参考信息"""
     last_msg = state["messages"][-1]
     query = last_msg.content
-    rag_info = build_to_llm_hybrid_search_str(query, None)
+    search_query = rewrite_query(query)
+    rag_info = build_to_llm_hybrid_search_str(search_query, None)
     logger.info("rag检索信息")
     logger.info(rag_info)
     return {"rag_info": rag_info}

@@ -1,5 +1,7 @@
 # FastAPI / UVicorn 相关依赖
 from fastapi import FastAPI, Request
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 import uvicorn
 # 引入全局 API 路由聚合器
 from api.router import api_router
@@ -47,6 +49,14 @@ app.add_middleware(
 )
 # 挂载所有 API 路由
 app.include_router(api_router)
+
+# 前端静态资源
+app.mount("/static", StaticFiles(directory="frontend"), name="static")
+
+
+@app.get("/")
+async def index():
+    return FileResponse("frontend/index.html")
 
 
 # 启动入口

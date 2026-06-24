@@ -52,3 +52,7 @@ RERANK_ENABLED = True                         # 是否启用重排序
 RERANK_CANDIDATES = 20                        # RRF 融合后保留多少候选给 reranker
 RERANK_TOP_N = 5                              # reranker 后最终取多少
 RERANK_SCORE_THRESHOLD = 0.3                  # 低于此分的视为不相关，丢弃
+
+# ======== 查询改写配置 ========
+QUERY_REWRITE_MODE = os.getenv("QUERY_REWRITE_MODE", "llm").lower()  # off | rule | llm
+QUERY_REWRITE_TIMEOUT = _get_float("QUERY_REWRITE_TIMEOUT", 10.0)

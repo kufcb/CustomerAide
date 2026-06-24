@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智能客服助手</title>
+    <link rel="stylesheet" href="./css/style.css">
+</head>
+<body>
+    <div class="chat-app">
+        <header class="chat-header">
+            <div class="chat-header__avatar">AI</div>
+            <div class="chat-header__info">
+                <h1 class="chat-header__title">智能客服助手</h1>
+                <span class="chat-header__status">
+                    <span class="status-dot"></span>在线
+                </span>
+            </div>
+            <button id="clearBtn" class="chat-header__clear" title="清空对话">清空</button>
+        </header>
+
+        <main id="messages" class="chat-messages">
+            <!-- 消息记录动态插入 -->
+        </main>
+
+        <footer class="chat-input">
+            <textarea
+                id="input"
+                class="chat-input__field"
+                placeholder="输入消息，回车发送，Shift + 回车换行…"
+                rows="1"
+            ></textarea>
+            <button id="sendBtn" class="chat-input__send" title="发送">
+                <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+                    <path fill="currentColor" d="M3.4 20.4 21 12 3.4 3.6 3 10l12 2-12 2z"/>
+                </svg>
+            </button>
+        </footer>
+    </div>
+
+    <script src="./js/app.js"></script>
+</body>
+</html>

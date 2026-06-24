@@ -24,6 +24,18 @@
         </main>
 
         <footer class="chat-input">
+            <input
+                type="file"
+                id="fileInput"
+                class="chat-input__file"
+                accept=".txt"
+                hidden
+            >
+            <button id="uploadBtn" class="chat-input__upload" title="上传知识库文件 (.txt)">
+                <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+                    <path fill="currentColor" d="M9 16h6v-6h4l-7-7-7 7h4v6zm-4 2h14v2H5v-2z"/>
+                </svg>
+            </button>
             <textarea
                 id="input"
                 class="chat-input__field"

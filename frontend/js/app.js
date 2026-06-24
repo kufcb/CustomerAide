@@ -1,14 +1,19 @@
-// 后端流式聊天接口（与前端同源，由 FastAPI 提供）
-const API_URL = "http://localhost:8888/stream_chat";
+// 后端接口（与前端同源，由 FastAPI 提供）
+const API_BASE = "http://localhost:8888";
+const API_URL = `${API_BASE}/stream_chat`;
+const UPLOAD_URL = `${API_BASE}/upload`;
 
 const messagesEl = document.getElementById("messages");
 const inputEl = document.getElementById("input");
 const sendBtn = document.getElementById("sendBtn");
 const clearBtn = document.getElementById("clearBtn");
+const uploadBtn = document.getElementById("uploadBtn");
+const fileInput = document.getElementById("fileInput");
 
 const WELCOME = "你好，我是智能客服助手，有什么可以帮你的吗？";
 
 let isSending = false;
+let isUploading = false;
 
 // 页面进入即显示欢迎语
 appendMessage("ai", WELCOME);
@@ -53,14 +58,88 @@ function scrollToBottom() {
     messagesEl.scrollTop = messagesEl.scrollHeight;
 }
 
+// 居中系统提示（上传结果等）
+function appendSystemMessage(text, isError = false) {
+    const row = document.createElement("div");
+    row.className = "msg msg--system";
+    if (isError) row.classList.add("msg--system-error");
+
+    const bubble = document.createElement("div");
+    bubble.className = "msg__bubble";
+    bubble.textContent = text;
+
+    row.appendChild(bubble);
+    messagesEl.appendChild(row);
+    scrollToBottom();
+}
+
+/* ---------- 文件上传 ---------- */
+
+async function uploadFile(file) {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("knowledge_base", "默认");
+
+    const resp = await fetch(UPLOAD_URL, {
+        method: "POST",
+        body: formData,
+    });
+
+    const raw = await resp.text();
+    let result = {};
+    try {
+        result = raw ? JSON.parse(raw) : {};
+    } catch {
+        if (!resp.ok) {
+            throw new Error(raw || `上传失败：${resp.status}`);
+        }
+        throw new Error(`上传失败：${resp.status}`);
+    }
+
+    if (!resp.ok) {
+        const detail = result.detail || result.message || `HTTP ${resp.status}`;
+        throw new Error(typeof detail === "string" ? detail : JSON.stringify(detail));
+    }
+    if (result.code !== 200) {
+        throw new Error(result.message || "上传失败");
+    }
+    return result;
+}
+
+async function handleFileSelected(e) {
+    const file = e.target.files?.[0];
+    fileInput.value = "";
+    if (!file || isUploading) return;
+
+    isUploading = true;
+    uploadBtn.disabled = true;
+    sendBtn.disabled = true;
+
+    appendSystemMessage(`正在上传「${file.name}」…`);
+
+    try {
+        const result = await uploadFile(file);
+        const sizeKb = ((result.data?.size || file.size) / 1024).toFixed(1);
+        appendSystemMessage(`「${file.name}」上传成功（${sizeKb} KB），已加入知识库。`);
+    } catch (err) {
+        appendSystemMessage(`上传失败：${err.message}`, true);
+    } finally {
+        isUploading = false;
+        uploadBtn.disabled = false;
+        if (!isSending) sendBtn.disabled = false;
+        inputEl.focus();
+    }
+}
+
 /* ---------- 发送与流式接收 ---------- */
 
 async function sendMessage() {
     const text = inputEl.value.trim();
-    if (!text || isSending) return;
+    if (!text || isSending || isUploading) return;
 
     isSending = true;
     sendBtn.disabled = true;
+    uploadBtn.disabled = true;
 
     // 渲染用户消息
     appendMessage("user", text);
@@ -109,6 +188,7 @@ async function sendMessage() {
     } finally {
         isSending = false;
         sendBtn.disabled = false;
+        if (!isUploading) uploadBtn.disabled = false;
         inputEl.focus();
     }
 }
@@ -116,6 +196,9 @@ async function sendMessage() {
 /* ---------- 交互事件 ---------- */
 
 sendBtn.addEventListener("click", sendMessage);
+
+uploadBtn.addEventListener("click", () => fileInput.click());
+fileInput.addEventListener("change", handleFileSelected);
 
 inputEl.addEventListener("keydown", (e) => {
     // 回车发送，Shift + 回车换行

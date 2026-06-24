@@ -6,7 +6,7 @@ import uuid
 from vo.response import res_body
 # 混合检索引擎（上传后重建 BM25 索引）
 from hybrid_rag import get_engine,vector_input_txt
-from config import UPLOAD_DIR, ALLOWED_EXTENSIONS, MAX_FILE_SIZE
+from config import UPLOAD_DIR, ALLOWED_EXTENSIONS, MAX_FILE_SIZE, EMBEDDING_MODEL
 
 router = APIRouter(tags=["Knowledge Base"])
 
@@ -41,10 +41,20 @@ async def upload_file(file: UploadFile = File(...), knowledge_base: str = Form("
         f.write(content)
 
     # 写入 RAG 知识库
-    if ext == ".txt":
-        vector_input_txt(save_path, knowledge_base)
-    else:
-        raise HTTPException(status_code=400, detail=f"暂时只支持txt")
-    # 刷新 BM25 混合检索索引
-    get_engine().rebuild_index()
+    try:
+        if ext == ".txt":
+            vector_input_txt(save_path, knowledge_base)
+        else:
+            raise HTTPException(status_code=400, detail=f"暂时只支持txt")
+        # 刷新 BM25 混合检索索引
+        get_engine().rebuild_index()
+    except HTTPException:
+        raise
+    except Exception as e:
+        if os.path.exists(save_path):
+            os.remove(save_path)
+        raise HTTPException(
+            status_code=503,
+            detail=f"知识库写入失败，请确认 Ollama 已启动且已拉取嵌入模型 {EMBEDDING_MODEL}：{e}",
+        ) from e
     return res_body(200, "上传成功", {"filename": save_name, "size": len(content)})

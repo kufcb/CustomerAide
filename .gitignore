@@ -4,3 +4,10 @@ uploads/*
 logs/*.log
 logs/*.log.*
 
+# Python 缓存
+__pycache__/
+*.pyc
+
+# RAGAS 评估报告产物
+eval/report/
+
